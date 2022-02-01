@@ -804,7 +804,7 @@ lc_prev_mdd_diff <- lc_prev_mdd %>%
 # plotting the prevalence of MDD at each age by sex and education
 # using observed data
 tmp_data <- mydata_mdd %>%
-  filter(sim == "observed")
+  filter(analysis == "Primary", sim == "observed")
 
 # initialize list to store results, and then estimating the age-
 # specific prevalence rates in yearly increments from the 
@@ -813,7 +813,7 @@ prev_mdd <- list()
 for (i in minage:maxage){
   prev_mdd[[i]] <- tmp_data %>%
     filter((health == "MDD" & agestart <= i & agestop >= i)) %>%
-    group_by(analysis, gender, education) %>%
+    group_by(gender, education) %>%
     summarise(prev = n()/(N*.25) * 100, .groups = "keep") %>%
     mutate(age = i) %>%
     ungroup()
@@ -825,9 +825,9 @@ prev_mdd <- bind_rows(prev_mdd)
 # plotting the age-specific prevalence of MDD stratified
 # by education and sex
 prev_mdd %>%
-  filter(analysis == "Primary") %>%
   ggplot() +
-  geom_line(aes(age, prev, color=gender, linetype = education))+
+  geom_line(aes(age, prev, color=gender, 
+                linetype = education), size = 1)+
   scale_y_continuous(breaks = c(2,4,6)) +
   labs(y = "Prevalence of MDD %",
        x = "Age (years)",
@@ -839,23 +839,9 @@ prev_mdd %>%
         plot.title.position = "plot", 
         plot.caption.position =  "plot",
         plot.margin = margin(0,0,0,0)) 
-ggsave("./plots/age_specific_prev_mdd.pdf", plot = last_plot())
+ggsave("./plots/age_specific_prev_mdd.pdf", plot = last_plot(),
+       width = 6, height = 4, units = "in")
 
-prev_mdd %>%
-  filter(analysis == "Sensitivity") %>%
-  ggplot() +
-  geom_line(aes(age, prev, color=gender, linetype = education))+
-  labs(y = "Prevalence of MDD %",
-       x = "Age (years)",
-       colour = "Sex",
-       linetype = "Education") +
-  theme_bw() + 
-  theme(legend.position = "right",
-        legend.box.margin = margin(0,0,0,0),
-        plot.title.position = "plot", 
-        plot.caption.position =  "plot",
-        plot.margin = margin(0,0,0,0)) 
-ggsave("./plots/age_specific_prev_mdd_sens.pdf", plot = last_plot())
 
 rm(tmp_data)
 
